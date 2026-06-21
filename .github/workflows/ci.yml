@@ -1,0 +1,98 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff==0.12.9
+
+      - name: Lint FastAPI
+        run: ruff check fastapi-engine
+
+      - name: hadolint laravel-orchestrator/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: laravel-orchestrator/Dockerfile
+
+      - name: hadolint fastapi-engine/Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: fastapi-engine/Dockerfile
+
+      - name: Validate docker-compose
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+  security:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Laravel image
+        run: docker build -t ci-laravel ./laravel-orchestrator
+
+      - name: Laravel boot smoke test
+        run: |
+          docker run --rm ci-laravel php artisan --version
+          docker run --rm ci-laravel php artisan route:list
+
+      - name: Build FastAPI image
+        run: docker build -t ci-fastapi ./fastapi-engine
+
+      - name: FastAPI import smoke test
+        run: |
+          docker run --rm ci-fastapi python -c "from app.main import app; print(app.title)"
+
+      - name: Trivy vulnerability scan (Laravel)
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ci-laravel:latest
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Trivy vulnerability scan (FastAPI)
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ci-fastapi:latest
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true

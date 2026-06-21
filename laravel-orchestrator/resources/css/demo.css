@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+    --color-demo-bg: #0b0f19;
+    --color-demo-surface: #151b2b;
+    --color-demo-surface2: #1e2639;
+    --color-demo-border: #2a344d;
+    --color-demo-text: #f0f4f8;
+    --color-demo-muted: #94a3b8;
+    --color-demo-accent: #38bdf8;
+    --color-demo-accent2: #818cf8;
+    --color-demo-success: #22c55e;
+    --color-demo-danger: #ef4444;
+}
+
+.demo-app {
+    @apply bg-[#0b0f19] text-[#f0f4f8] font-sans h-screen overflow-hidden;
+}
+
+.status-dot {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+.status-dot.health-up {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+}
+.status-dot.health-down {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.btn-icon {
+    @apply bg-transparent border border-[#2a344d] text-[#f0f4f8] rounded-lg w-9 h-9 cursor-pointer inline-flex items-center justify-center hover:border-[#38bdf8];
+}
+
+.tab-btn {
+    @apply bg-transparent border border-[#2a344d] text-[#94a3b8] px-3 py-1.5 rounded-md cursor-pointer text-sm font-medium;
+}
+.tab-btn.tab-active {
+    @apply bg-[#38bdf8] border-[#38bdf8] text-[#020617];
+}
+
+.detail-card {
+    @apply bg-[#0b0f19] border border-[#2a344d] rounded-lg p-3 mb-3;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+    @apply inline-flex items-center gap-1.5 text-[#94a3b8] text-sm;
+}

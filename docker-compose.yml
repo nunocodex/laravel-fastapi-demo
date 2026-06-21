@@ -1,0 +1,135 @@
+name: laravel-fastapi-demo
+
+services:
+  ai_postgres:
+    image: postgres:17-alpine
+    container_name: ai_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-enterprise_core}
+      POSTGRES_USER: ${POSTGRES_USER:-db_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-db_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker-compose/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - ai_enterprise_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-db_user} -d ${POSTGRES_DB:-enterprise_core}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai_redis:
+    image: redis:7-alpine
+    container_name: ai_redis
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - ai_enterprise_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai_qdrant:
+    image: qdrant/qdrant:v1.18.2
+    container_name: ai_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    networks:
+      - ai_enterprise_network
+
+  ai_laravel_app:
+    build:
+      context: ./laravel-orchestrator
+      dockerfile: Dockerfile
+    container_name: ai_laravel_app
+    env_file:
+      - .env
+    ports:
+      - "8000:80"
+      - "8080:8080"
+    volumes:
+      - ./laravel-orchestrator:/var/www/html
+    depends_on:
+      ai_postgres:
+        condition: service_healthy
+      ai_redis:
+        condition: service_healthy
+    networks:
+      - ai_enterprise_network
+    healthcheck:
+      test: ["CMD", "php", "artisan", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ai_laravel_worker:
+    build:
+      context: ./laravel-orchestrator
+      dockerfile: Dockerfile
+    container_name: ai_laravel_worker
+    env_file:
+      - .env
+    # The image's ENTRYPOINT is entrypoint.sh (boots nginx + APP_KEY bootstrap).
+    # The worker doesn't need nginx, so it uses a lighter entrypoint that only
+    # does the APP_KEY bootstrap and then execs the queue:work command.
+    entrypoint: ["/usr/local/bin/entrypoint-worker.sh"]
+    command: ["php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
+    working_dir: /var/www/html
+    volumes:
+      - ./laravel-orchestrator:/var/www/html
+    depends_on:
+      ai_laravel_app:
+        condition: service_healthy
+    networks:
+      - ai_enterprise_network
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan queue:work --once --stop-when-empty >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ai_fastapi_engine:
+    build:
+      context: ./fastapi-engine
+      dockerfile: Dockerfile
+    container_name: ai_fastapi_engine
+    env_file:
+      - .env
+    environment:
+      QDRANT_HOST: ${QDRANT_HOST:-ai_qdrant}
+      QDRANT_PORT: ${QDRANT_PORT:-6333}
+      REDIS_HOST: ${REDIS_HOST:-ai_redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      LARAVEL_BASE_URL: ${LARAVEL_BASE_URL:-http://ai_laravel_app}
+      CALLBACK_HMAC_SECRET: ${CALLBACK_HMAC_SECRET:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+    ports:
+      - "8001:8000"
+    depends_on:
+      - ai_qdrant
+      - ai_redis
+    networks:
+      - ai_enterprise_network
+
+volumes:
+  pgdata:
+  redisdata:
+  qdrantdata:
+
+networks:
+  ai_enterprise_network:
+    driver: bridge

@@ -1,0 +1,20 @@
+# ----------------------------------------------------------------------------
+# Local development override.
+# Activate with:  docker compose -f docker-compose.yml -f docker-compose.override.yml up
+# This file is not committed as `docker-compose.override.yml` so it stays
+# opt-in and per-developer. Copy to `docker-compose.override.yml` to use.
+# ----------------------------------------------------------------------------
+
+services:
+  ai_laravel_app:
+    # Bind-mount a host-created .env so the container does not regenerate
+    # APP_KEY on every start. The image will copy from .env.example if
+    # .env is missing, so this is optional.
+    volumes:
+      - ./.env:/var/www/html/.env:ro
+
+  ai_fastapi_engine:
+    # Hot-reload on Python source changes.
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./fastapi-engine:/app
