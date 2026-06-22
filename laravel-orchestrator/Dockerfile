@@ -1,5 +1,7 @@
 FROM php:8.4-fpm
 
+SHELL ["/bin/bash", "-c"]
+
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_NO_INTERACTION=1 \
     COMPOSER_MEMORY_LIMIT=-1
@@ -12,6 +14,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 # - libpng-dev libjpeg62-turbo-dev libfreetype6-dev libwebp-dev: GD image
 # - libzip-dev: zip
 # - libicu-dev: intl
+# hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
         nginx \

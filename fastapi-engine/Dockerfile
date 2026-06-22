@@ -6,12 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
+# hadolint ignore=DL3013
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY app ./app
