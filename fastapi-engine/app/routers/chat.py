@@ -9,7 +9,6 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from app.core import metrics
 from app.core.config import get_settings
 from app.models import ChatRequest, ChatResponse
 from app.services.bulkhead import BulkheadFullError, BulkheadName

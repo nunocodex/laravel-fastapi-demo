@@ -57,13 +57,14 @@ def instrument_app(app) -> None:
         return
 
     try:
+        from opentelemetry import trace as otel_trace
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
         from opentelemetry.instrumentation.redis import RedisInstrumentor
 
         FastAPIInstrumentor.instrument_app(
             app,
             excluded_urls="/metrics,/health,/up",
-            tracer_provider=trace.get_tracer_provider() if hasattr(trace, 'get_tracer_provider') else None,
+            tracer_provider=otel_trace.get_tracer_provider() if hasattr(otel_trace, 'get_tracer_provider') else None,
         )
         RedisInstrumentor().instrument()
 

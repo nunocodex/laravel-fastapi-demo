@@ -11,8 +11,6 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-
 import redis.asyncio as aioredis
 
 from app.core.metrics import circuit_breaker_state as cb_gauge

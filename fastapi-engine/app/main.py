@@ -14,6 +14,7 @@ Architecture:
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
@@ -37,8 +38,6 @@ from app.services.bulkhead import BulkheadRegistry
 settings = get_settings()
 setup_logging(settings.LOG_LEVEL)
 setup_tracing(settings.APP_NAME)
-
-import logging
 
 logger = logging.getLogger(__name__)
 

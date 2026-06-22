@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.core.logging import correlation_id_ctx, set_correlation_id
+from app.core.logging import set_correlation_id
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):

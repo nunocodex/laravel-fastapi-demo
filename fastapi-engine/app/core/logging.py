@@ -7,7 +7,6 @@ import logging
 import sys
 from contextvars import ContextVar
 from datetime import datetime, timezone
-from typing import Optional
 from uuid import uuid4
 
 
