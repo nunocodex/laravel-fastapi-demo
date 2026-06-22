@@ -80,7 +80,7 @@ jobs:
           docker run --rm ci-fastapi python -c "from app.main import app; print(app.title)"
 
       - name: Trivy vulnerability scan (Laravel)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ci-laravel:latest
           format: 'table'
@@ -89,7 +89,7 @@ jobs:
         continue-on-error: true
 
       - name: Trivy vulnerability scan (FastAPI)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ci-fastapi:latest
           format: 'table'
