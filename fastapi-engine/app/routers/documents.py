@@ -8,7 +8,6 @@ from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
-from app.core import metrics
 from app.core.config import get_settings
 from app.models import DocumentOut
 from app.services.bulkhead import BulkheadFullError, BulkheadName

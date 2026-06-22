@@ -83,7 +83,7 @@ class QdrantService:
                 }
                 for hit in result.points
             ]
-        except Exception as exc:
+        except Exception:
             logger.error("qdrant.search_failed collection=%s", collection_name, exc_info=True)
             raise
 
@@ -149,7 +149,7 @@ class QdrantService:
                 elapsed,
             )
             return len(points)
-        except Exception as exc:
+        except Exception:
             logger.error("qdrant.upsert_failed doc_id=%s", document_id, exc_info=True)
             raise
 

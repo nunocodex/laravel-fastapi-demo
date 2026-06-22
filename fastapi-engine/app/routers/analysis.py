@@ -106,7 +106,6 @@ async def analyze(request: Request, task_uuid: str, payload: AnalysisRequest) ->
 async def engine_stats(request: Request):
     qdrant_svc = request.app.state.qdrant
     redis_client = request.app.state.redis
-    llm_svc = request.app.state.llm
 
     qdrant_stats = await qdrant_svc.get_collection_info(settings.COLLECTION_NAME)
 

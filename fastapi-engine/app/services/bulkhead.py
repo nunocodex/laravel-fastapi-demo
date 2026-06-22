@@ -18,8 +18,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from app.core import metrics as m
-
 logger = logging.getLogger(__name__)
 
 
